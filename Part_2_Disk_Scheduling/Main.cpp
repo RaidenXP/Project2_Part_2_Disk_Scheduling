@@ -16,13 +16,13 @@
 
 using namespace std;
 
-void fCFS(int previousService, int firstService, vector<int>* processes);
+void fCFS(int firstService, vector<int>* processes);
 
-void sSTF(int previousService, int firstService, vector<int>* processes);
+void sSTF(int firstService, vector<int>* processes);
 
-void scan(int previousService, int firstService, vector<int>* processes);
+void scan(int firstService, vector<int>* processes);
 
-void cScan(int previousService, int firstService, vector<int>* processes);
+void cScan(int firstService, vector<int>* processes);
 
 int main()
 {
@@ -38,7 +38,7 @@ int main()
 	int firstService = 2150;*/
 
 	vector<int>* processes = new vector<int>{};
-	int previousService = 0;
+	/*int previousService = 0;*/
 	int firstService = 0;
 
 	cout << "Welcome to the simple simulation for disk-scheduling!" << endl << endl;
@@ -75,13 +75,13 @@ int main()
 	{
 		cout << "Please input the current servicing cylinder: " << endl;
 		cin >> firstService;
-		cout << "Please input the previous servicing cylinder before the current one: " << endl;
-		cin >> previousService;
+		/*cout << "Please input the previous servicing cylinder before the current one: " << endl;
+		cin >> previousService;*/
 
-		cout << "This will help us know the direction the head is already going." << endl;
+		/*cout << "This will help us know the direction the head is already going." << endl;*/
 		cout << endl;
 
-		int items = 1000;
+		int items = 10;
 		for (int i = 0; i < items; ++i)
 		{
 			processes->push_back(rand() % 5000);
@@ -91,10 +91,10 @@ int main()
 	{
 		cout << "Please input the current servicing cylinder: " << endl;
 		cin >> firstService;
-		cout << "Please input the previous servicing cylinder before the current one: " << endl;
-		cin >> previousService;
+		/*cout << "Please input the previous servicing cylinder before the current one: " << endl;
+		cin >> previousService;*/
 
-		cout << "This will help us know the direction the head is already going." << endl;
+		/*cout << "This will help us know the direction the head is already going." << endl;*/
 		cout << endl;
 
 		string fileName;
@@ -133,19 +133,19 @@ int main()
 
 	cout << endl;
 	cout << "FCFS: ";
-	fCFS(previousService, firstService, processes);
+	fCFS(firstService, processes);
 
 	cout << endl;
 	cout << "SSTF: ";
-	sSTF(previousService, firstService, processes);
+	sSTF(firstService, processes);
 	
 	cout << endl;
 	cout << "SCAN: ";
-	scan(previousService, firstService, processes);
+	scan(firstService, processes);
 	
 	cout << endl;
 	cout << "CSCAN: ";
-	cScan(previousService, firstService, processes);
+	cScan(firstService, processes);
 
 	cout << endl;
 
@@ -157,14 +157,14 @@ int main()
 	return 0;
 }
 
-void fCFS(int previousService, int firstService, vector<int>* processes)
+void fCFS(int firstService, vector<int>* processes)
 {
 	int direction = 0;
 	int totalHeadMov = 0;
 	int headChangeCount = 0;
 	int length = static_cast<int>(processes->size());
 
-	if (firstService - previousService >= 0)
+	if (processes->operator[](0) - firstService >= 0)
 		direction = 1;
 	else
 		direction = -1;
@@ -211,7 +211,7 @@ void fCFS(int previousService, int firstService, vector<int>* processes)
 	cout << "The total changed direction: " << headChangeCount << endl;
 }
 
-void sSTF(int previousService, int firstService, vector<int>* processes)
+void sSTF(int firstService, vector<int>* processes)
 {
 	int direction = 0;
 	int totalHeadMov = 0;
@@ -219,13 +219,6 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 
 	vector<int> v1 = *processes;
 	vector<int> v2 = {};
-
-	if (firstService - previousService >= 0)
-		direction = 1;
-	else
-		direction = -1;
-
-	int previousDirect = direction;
 
 	int bestMin = abs(firstService - v1[0]);
 	int bestInd = 0;
@@ -240,6 +233,13 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 
 	v2.push_back(v1[bestInd]);
 	v1.erase(v1.begin() + bestInd);
+
+	if (v2[0] - firstService >= 0)
+		direction = 1;
+	else
+		direction = -1;
+
+	int previousDirect = direction;
 
 	int j = 0;
 	while (!(v1.empty()))
@@ -303,7 +303,7 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 	cout << "The total changed direction: " << headChangeCount << endl;
 }
 
-void scan(int previousService, int firstService, vector<int>* processes)
+void scan(int firstService, vector<int>* processes)
 {
 	int direction = 0;
 	int totalHeadMov = 0;
@@ -312,7 +312,162 @@ void scan(int previousService, int firstService, vector<int>* processes)
 	vector<int> lowerHalf = {};
 	vector<int> upperHalf = {};
 
-	if (firstService - previousService >= 0)
+	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
+	{
+		if (processes->operator[](i) >= 0 && processes->operator[](i) <= firstService)
+		{
+			lowerHalf.push_back(processes->operator[](i));
+		}
+		else if (processes->operator[](i) < 5000 && processes->operator[](i) > firstService)
+		{
+			upperHalf.push_back(processes->operator[](i));
+		}
+	}
+
+	sort(upperHalf.begin(), upperHalf.end());
+	sort(lowerHalf.begin(), lowerHalf.end());
+	reverse(lowerHalf.begin(), lowerHalf.end());
+
+	if (processes->operator[](0) - firstService >= 0)
+		direction = 1;
+	else
+		direction = -1;
+
+	int previousDirect = direction;
+
+	if (direction == -1)
+	{
+		int length = static_cast<int>(lowerHalf.size());
+
+		if (length != 0)
+		{
+			for (int i = 0; i < length; ++i)
+			{
+				if (i == 0)
+				{
+					totalHeadMov += abs((lowerHalf[i] - firstService));
+				}
+				else
+				{
+					totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+				}
+			}
+		}
+
+		length = static_cast<int>(upperHalf.size());
+		
+		if (length != 0)
+		{
+			if (static_cast<int>(lowerHalf.size()) == 0)
+			{
+				++headChangeCount;
+
+				for (int i = 0; i < length; ++i)
+				{
+					if (i == 0)
+					{
+						totalHeadMov += abs((upperHalf[i] - firstService));
+					}
+					else
+					{
+						totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
+					}
+				}
+			}
+			else
+			{
+				totalHeadMov += abs((0 - lowerHalf[static_cast<int>(lowerHalf.size()) - 1]));
+				++headChangeCount;
+
+				for (int i = 0; i < length; ++i)
+				{
+					if (i == 0)
+					{
+						totalHeadMov += abs((upperHalf[i] - 0));
+					}
+					else
+					{
+						totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		int length = static_cast<int>(upperHalf.size());
+		
+		if (length != 0)
+		{
+			for (int i = 0; i < length; ++i)
+			{
+				if (i == 0)
+				{
+					totalHeadMov += abs((upperHalf[i] - firstService));
+				}
+				else
+				{
+					totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
+				}
+			}
+		}
+		
+		length = static_cast<int>(lowerHalf.size());
+		
+		if (length != 0)
+		{
+			if (static_cast<int>(upperHalf.size()) == 0)
+			{
+				++headChangeCount;
+
+				for (int i = 0; i < length; ++i)
+				{
+					if (i == 0)
+					{
+						totalHeadMov += abs((lowerHalf[i] - firstService));
+					}
+					else
+					{
+						totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+					}
+				}
+			}
+			else
+			{
+				totalHeadMov += abs((4999 - upperHalf[static_cast<int>(upperHalf.size()) - 1]));
+				++headChangeCount;
+
+				for (int i = 0; i < length; ++i)
+				{
+					if (i == 0)
+					{
+						totalHeadMov += abs((lowerHalf[i] - 4999));
+					}
+					else
+					{
+						totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+					}
+				}
+			}
+		}
+	}
+
+	cout << endl;
+	cout << endl;
+	cout << "The total head movement: " << totalHeadMov << endl;
+	cout << "The total changed direction: " << headChangeCount << endl;
+}
+
+void cScan(int firstService, vector<int>* processes)
+{
+	int direction = 0;
+	int totalHeadMov = 0;
+	int headChangeCount = 0;
+
+	vector<int> lowerHalf = {};
+	vector<int> upperHalf = {};
+
+	if (processes->operator[](0) - firstService >= 0)
 		direction = 1;
 	else
 		direction = -1;
@@ -324,12 +479,8 @@ void scan(int previousService, int firstService, vector<int>* processes)
 		if (processes->operator[](i) >= 0 && processes->operator[](i) <= firstService)
 		{
 			lowerHalf.push_back(processes->operator[](i));
-		}
-	}
-
-	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
-	{
-		if (processes->operator[](i) < 5000 && processes->operator[](i) >= firstService)
+		} 
+		else if (processes->operator[](i) < 5000 && processes->operator[](i) > firstService)
 		{
 			upperHalf.push_back(processes->operator[](i));
 		}
@@ -337,44 +488,11 @@ void scan(int previousService, int firstService, vector<int>* processes)
 
 	sort(upperHalf.begin(), upperHalf.end());
 	sort(lowerHalf.begin(), lowerHalf.end());
-	reverse(lowerHalf.begin(), lowerHalf.end());
 
-	if (direction == -1)
+	int length = static_cast<int>(upperHalf.size());
+	
+	if (length != 0)
 	{
-		int length = static_cast<int>(lowerHalf.size());
-
-		for (int i = 0; i < length; ++i)
-		{
-			if (i == 0)
-			{
-				totalHeadMov += abs((lowerHalf[i] - firstService));
-			}
-			else
-			{
-				totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
-			}
-		}
-
-		totalHeadMov += abs((0 - lowerHalf[length - 1]));
-
-		length = static_cast<int>(upperHalf.size());
-		++headChangeCount;
-
-		for (int i = 0; i < length; ++i)
-		{
-			if (i == 0)
-			{
-				totalHeadMov += abs((upperHalf[i] - 0));
-			}
-			else
-			{
-				totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
-			}
-		}
-	}
-	else
-	{
-		int length = static_cast<int>(upperHalf.size());
 		for (int i = 0; i < length; ++i)
 		{
 			if (i == 0)
@@ -386,95 +504,47 @@ void scan(int previousService, int firstService, vector<int>* processes)
 				totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
 			}
 		}
-
-		totalHeadMov += abs((4999 - upperHalf[length - 1]));
-		
-		length = static_cast<int>(lowerHalf.size());
-		++headChangeCount;
-
-		for (int i = 0; i < length; ++i)
-		{
-			if (i == 0)
-			{
-				totalHeadMov += abs((lowerHalf[i] - 4999));
-			}
-			else
-			{
-				totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
-			}
-		}
 	}
-
-	cout << endl;
-	cout << endl;
-	cout << "The total head movement: " << totalHeadMov << endl;
-	cout << "The total changed direction: " << headChangeCount << endl;
-}
-
-void cScan(int previousService, int firstService, vector<int>* processes)
-{
-	int direction = 0;
-	int totalHeadMov = 0;
-	int headChangeCount = 0;
-
-	vector<int> lowerHalf = {};
-	vector<int> upperHalf = {};
-
-	if (firstService - previousService >= 0)
-		direction = 1;
-	else
-		direction = -1;
-
-	int previousDirect = direction;
-
-	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
-	{
-		if (processes->operator[](i) >= 0 && processes->operator[](i) <= firstService)
-		{
-			lowerHalf.push_back(processes->operator[](i));
-		}
-	}
-
-	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
-	{
-		if (processes->operator[](i) < 5000 && processes->operator[](i) >= firstService)
-		{
-			upperHalf.push_back(processes->operator[](i));
-		}
-	}
-
-	sort(upperHalf.begin(), upperHalf.end());
-	sort(lowerHalf.begin(), lowerHalf.end());
-
-	int length = static_cast<int>(upperHalf.size());
-	for (int i = 0; i < length; ++i)
-	{
-		if (i == 0)
-		{
-			totalHeadMov += abs((upperHalf[i] - firstService));
-		}
-		else
-		{
-			totalHeadMov += abs((upperHalf[i] - upperHalf[i - 1]));
-		}
-	}
-
-	totalHeadMov += abs((4999 - upperHalf[length - 1]));
-	totalHeadMov += abs((0 - 4999));
 
 	length = static_cast<int>(lowerHalf.size());
-	++headChangeCount;
-	++headChangeCount;
 
-	for (int i = 0; i < length; ++i)
+	if (length != 0)
 	{
-		if (i == 0)
+		if (static_cast<int>(upperHalf.size()) == 0)
 		{
-			totalHeadMov += abs((lowerHalf[i] - 0));
+			totalHeadMov += abs((4999 - firstService));
+			totalHeadMov += abs((0 - 4999));
+			headChangeCount += 2;
+
+			for (int i = 0; i < length; ++i)
+			{
+				if (i == 0)
+				{
+					totalHeadMov += abs((lowerHalf[i] - firstService));
+				}
+				else
+				{
+					totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+				}
+			}
 		}
 		else
 		{
-			totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+			totalHeadMov += abs((4999 - upperHalf[static_cast<int>(upperHalf.size()) - 1]));
+			totalHeadMov += abs((0 - 4999));
+			headChangeCount += 2;
+
+			for (int i = 0; i < length; ++i)
+			{
+				if (i == 0)
+				{
+					totalHeadMov += abs((lowerHalf[i] - 0));
+				}
+				else
+				{
+					totalHeadMov += abs((lowerHalf[i] - lowerHalf[i - 1]));
+				}
+			}
 		}
 	}
 
