@@ -86,7 +86,7 @@ int main()
 		cout << "This will help us know the direction the head is already going." << endl;
 		cout << endl;
 
-		int items = 10;
+		int items = 1000;
 		for (int i = 0; i < items; ++i)
 		{
 			processes->push_back(rand() % 5000);
