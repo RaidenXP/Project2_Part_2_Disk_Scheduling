@@ -29,14 +29,17 @@ int main()
 	//initilize random seed
 	srand(time(NULL));
 
+	//just testing code don't worry about this
 	/*vector<int>* processes = new vector<int>{70, 115, 130, 110, 80, 20, 25};
 	int previousService = 90;
 	int firstService = 120;*/
 
+	//just testing code don't worry about this
 	/*vector<int>* processes = new vector<int>{2069, 1212, 2296, 2800, 544, 1618, 356, 1523, 4965, 3681};
 	int previousService = 1805;
 	int firstService = 2150;*/
 
+	//initialization of values
 	vector<int>* processes = new vector<int>{};
 	int previousService = 0;
 	int firstService = 0;
@@ -71,6 +74,7 @@ int main()
 
 	} while (!flag);
 
+	//chooose either a random list of 1000 cylinders or a input.txt
 	if (option == 1)
 	{
 		cout << "Please input the current servicing cylinder: " << endl;
@@ -82,7 +86,7 @@ int main()
 		cout << "This will help us know the direction the head is already going." << endl;
 		cout << endl;
 
-		int items = 1000;
+		int items = 10;
 		for (int i = 0; i < items; ++i)
 		{
 			processes->push_back(rand() % 5000);
@@ -92,10 +96,11 @@ int main()
 	{
 		cout << "Please input the current servicing cylinder: " << endl;
 		cin >> firstService;
-		/*cout << "Please input the previous servicing cylinder before the current one: " << endl;
-		cin >> previousService;*/
+		cout << "Please input the previous servicing cylinder before the current one: " << endl;
+		cin >> previousService;
 
-		/*cout << "This will help us know the direction the head is already going." << endl;*/
+		cout << endl;
+		cout << "This will help us know the direction the head is already going." << endl;
 		cout << endl;
 
 		string fileName;
@@ -160,11 +165,13 @@ int main()
 
 void fCFS(int previousService, int firstService, vector<int>* processes)
 {
+	//initialization of variables
 	int direction = 0;
 	int totalHeadMov = 0;
 	int headChangeCount = 0;
 	int length = static_cast<int>(processes->size());
 
+	//determine the direction
 	if (firstService - previousService >= 0)
 		direction = 1;
 	else
@@ -172,17 +179,22 @@ void fCFS(int previousService, int firstService, vector<int>* processes)
 
 	int previousDirect = direction;
 
+	//go through processes
 	for (int i = 0; i < length; ++i)
 	{
+		//if its the first value then we will use our initial cylinder
+		//otherwise we will continue down the list and use consecutive values
 		if (i == 0) 
 		{
 			totalHeadMov += abs((processes->operator[](i) - firstService));
 			
+			//check direction
 			if (processes->operator[](i) - firstService >= 0)
 				direction = 1;
 			else
 				direction = -1;
 
+			//check to see if direction changed
 			if (direction != previousDirect)
 			{
 				headChangeCount++;
@@ -193,11 +205,13 @@ void fCFS(int previousService, int firstService, vector<int>* processes)
 		{
 			totalHeadMov += abs((processes->operator[](i) - processes->operator[](i - 1)));
 
+			//check direction
 			if (processes->operator[](i) - processes->operator[](i - 1) >= 0)
 				direction = 1;
 			else
 				direction = -1;
 
+			//check to see if direction changed
 			if (direction != previousDirect)
 			{
 				headChangeCount++;
@@ -214,13 +228,17 @@ void fCFS(int previousService, int firstService, vector<int>* processes)
 
 void sSTF(int previousService, int firstService, vector<int>* processes)
 {
+	//initialization of the variables
 	int direction = 0;
 	int totalHeadMov = 0;
 	int headChangeCount = 0;
 
 	vector<int> v1 = *processes;
+	
+	//will be our list that will add the next closest process
 	vector<int> v2 = {};
 
+	//get our first closest cylinder to our initial cylinder
 	int bestMin = abs(firstService - v1[0]);
 	int bestInd = 0;
 	for (int i = 1; i < static_cast<int>(v1.size()); ++i)
@@ -235,6 +253,7 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 	v2.push_back(v1[bestInd]);
 	v1.erase(v1.begin() + bestInd);
 
+	//check for the direction
 	if (firstService - previousService >= 0)
 		direction = 1;
 	else
@@ -242,6 +261,7 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 
 	int previousDirect = direction;
 
+	//order our v2 will the closest cylinder as it travels through the queue
 	int j = 0;
 	while (!(v1.empty()))
 	{
@@ -264,6 +284,7 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 
 	int length = static_cast<int>(v2.size());
 
+	//use the exact same process in FCFS to check for direction change and head movement
 	for (int i = 0; i < length; ++i)
 	{
 		if (i == 0)
@@ -306,13 +327,17 @@ void sSTF(int previousService, int firstService, vector<int>* processes)
 
 void scan(int previousService, int firstService, vector<int>* processes)
 {
+	//initialization of variables
 	int direction = 0;
 	int totalHeadMov = 0;
 	int headChangeCount = 0;
 
+	//will use to divide the processes because we will finish processes in one direction then
+	//head to the next
 	vector<int> lowerHalf = {};
 	vector<int> upperHalf = {};
 
+	//divide the processes in half
 	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
 	{
 		if (processes->operator[](i) >= 0 && processes->operator[](i) <= firstService)
@@ -325,10 +350,12 @@ void scan(int previousService, int firstService, vector<int>* processes)
 		}
 	}
 
+	//sort the lists and reverse the lower half because we want the largest first
 	sort(upperHalf.begin(), upperHalf.end());
 	sort(lowerHalf.begin(), lowerHalf.end());
 	reverse(lowerHalf.begin(), lowerHalf.end());
 
+	//check the initial direction
 	if (firstService - previousService >= 0)
 		direction = 1;
 	else
@@ -336,10 +363,13 @@ void scan(int previousService, int firstService, vector<int>* processes)
 
 	int previousDirect = direction;
 
+	//if we are heading the negative direction
+	//or are we heading in the positive direction
 	if (direction == -1)
 	{
 		int length = static_cast<int>(lowerHalf.size());
 
+		//check if the lower half is empty or not
 		if (length != 0)
 		{
 			for (int i = 0; i < length; ++i)
@@ -357,8 +387,12 @@ void scan(int previousService, int firstService, vector<int>* processes)
 
 		length = static_cast<int>(upperHalf.size());
 		
+		//check for the upper half because we were decreasing add head change count by 1
+		//then do the upper area
 		if (length != 0)
 		{
+			//if there was no lower half
+			//otherwise start where the lower half left off
 			if (static_cast<int>(lowerHalf.size()) == 0)
 			{
 				++headChangeCount;
@@ -398,6 +432,7 @@ void scan(int previousService, int firstService, vector<int>* processes)
 	{
 		int length = static_cast<int>(upperHalf.size());
 		
+		//check the upper half
 		if (length != 0)
 		{
 			for (int i = 0; i < length; ++i)
@@ -417,6 +452,8 @@ void scan(int previousService, int firstService, vector<int>* processes)
 		
 		if (length != 0)
 		{
+			//if the upperhalf did not exist then change direction and start from initial cylinder
+			//otherwise start where the upper half left off
 			if (static_cast<int>(upperHalf.size()) == 0)
 			{
 				++headChangeCount;
@@ -461,6 +498,7 @@ void scan(int previousService, int firstService, vector<int>* processes)
 
 void cScan(int previousService, int firstService, vector<int>* processes)
 {
+	//initialization of variables
 	int direction = 0;
 	int totalHeadMov = 0;
 	int headChangeCount = 0;
@@ -468,6 +506,7 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 	vector<int> lowerHalf = {};
 	vector<int> upperHalf = {};
 
+	//check the initial direction
 	if (firstService - previousService >= 0)
 		direction = 1;
 	else
@@ -475,6 +514,7 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 
 	int previousDirect = direction;
 
+	//separate the halves
 	for (int i = 0; i < static_cast<int>(processes->size()); ++i)
 	{
 		if (processes->operator[](i) >= 0 && processes->operator[](i) <= firstService)
@@ -487,13 +527,17 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 		}
 	}
 
+	//sort the halves
 	sort(upperHalf.begin(), upperHalf.end());
 	sort(lowerHalf.begin(), lowerHalf.end());
 
+	//if we go in the positive direction
+	//otherwise we go to the negative direction
 	if (direction == 1)
 	{
 		int length = static_cast<int>(upperHalf.size());
 
+		//check to see if the upperhalf is empty
 		if (length != 0)
 		{
 			for (int i = 0; i < length; ++i)
@@ -513,6 +557,10 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 
 		if (length != 0)
 		{
+			//if the upperhalf had nothing in it then send to end of cylinders
+			//then go back to 0 and change direction twice cause we go back then forward
+			//otherwise if there is a upper half we do 4999 - the last upper half value
+			//then go back to 0 and change direction twice cause we go back then forward
 			if (static_cast<int>(upperHalf.size()) == 0)
 			{
 				totalHeadMov += abs((4999 - firstService));
@@ -553,10 +601,13 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 	}
 	else
 	{
+		//we have to reverse here because we need the upper part of the lower
+		//half first
 		reverse(lowerHalf.begin(), lowerHalf.end());
 
 		int length = static_cast<int>(lowerHalf.size());
 
+		//check for the lower half size
 		if (length != 0)
 		{
 			for (int i = 0; i < length; ++i)
@@ -576,6 +627,13 @@ void cScan(int previousService, int firstService, vector<int>* processes)
 
 		if (length != 0)
 		{
+			//if the lower half is empty then we go from the first service to 0
+			//then go back to 4999 and change back again
+			//reverse the upper half because we want the highest value first
+			//else
+			//we go to 0 from the lowest part of the lower half
+			//then go back to 4999 and change back to decreasing
+			//reverse the upper half because we want the highest value first
 			if (static_cast<int>(lowerHalf.size()) == 0)
 			{
 				totalHeadMov += abs((0 - firstService));
